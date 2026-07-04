@@ -1,0 +1,717 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "timescale"
+        },
+        "enable": false,
+        "hide": false,
+        "iconColor": "orange",
+        "name": "Control events",
+        "target": {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, text FROM ( SELECT ts AS time, action AS text, lag(action) OVER (ORDER BY ts) AS prev FROM control_events WHERE $__timeFilter(ts)) s WHERE prev IS DISTINCT FROM text ORDER BY time",
+          "textColumn": "text",
+          "timeColumn": "time"
+        }
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescale"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": 300000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ambient"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "internal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 15,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "targets": [
+        {
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "SELECT ts AS time, metric, value FROM sensor_data WHERE metric IN ('ambient','internal') AND $__timeFilter(ts) ORDER BY ts",
+          "refId": "A"
+        }
+      ],
+      "title": "Temperatures",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescale"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ord"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom.viz",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Field"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 260
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 9,
+        "x": 15,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH b AS (\n  SELECT *\n  FROM batches\n  ORDER BY (ended_at IS NULL) DESC, started_at DESC\n  LIMIT 1\n), current_batch AS (\n  SELECT\n    coalesce((SELECT batch_id FROM b), 0) AS batch_id,\n    coalesce((SELECT name FROM b), 'Batch #0') AS name,\n    (SELECT style FROM b) AS style,\n    (SELECT vessel FROM b) AS vessel,\n    coalesce((SELECT started_at FROM b), now()) AS started_at,\n    (SELECT ended_at FROM b) AS ended_at,\n    (SELECT og FROM b) AS og,\n    (SELECT target_fg FROM b) AS target_fg,\n    (SELECT notes FROM b) AS notes\n)\nSELECT * FROM (\n  SELECT 1 AS ord, 'Batch #' AS \"Field\", batch_id::text AS \"Value\" FROM current_batch\n  UNION ALL SELECT 2, 'Name', name FROM current_batch\n  UNION ALL SELECT 3, 'Beer type', coalesce(style,'-') FROM current_batch\n  UNION ALL SELECT 4, 'Vessel', coalesce(vessel,'-') FROM current_batch\n  UNION ALL SELECT 5, 'Started', to_char(started_at,'YYYY-MM-DD HH24:MI') FROM current_batch\n  UNION ALL SELECT 6, 'Ended', coalesce(to_char(ended_at,'YYYY-MM-DD HH24:MI'),'(active)') FROM current_batch\n  UNION ALL SELECT 7, 'Age (days)', round(extract(epoch FROM (coalesce(ended_at,now())-started_at))/86400.0, 1)::text FROM current_batch\n  UNION ALL SELECT 8, 'OG', coalesce(og::text,'-') FROM current_batch\n  UNION ALL SELECT 9, 'Target FG', coalesce(target_fg::text,'-') FROM current_batch\n  UNION ALL SELECT 10,'Notes', coalesce(notes,'-') FROM current_batch\n) t\nORDER BY ord",
+          "refId": "A"
+        }
+      ],
+      "title": "Current batch",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "ord": true
+            },
+            "indexByName": {
+              "Field": 0,
+              "Value": 1
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescale"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 70,
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "COOL": {
+                  "color": "blue",
+                  "index": 2
+                },
+                "HEAT": {
+                  "color": "red",
+                  "index": 0
+                },
+                "IDLE": {
+                  "color": "green",
+                  "index": 1
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 15,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "options": {
+        "alignValue": "left",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "mergeValues": true,
+        "rowHeight": 0.75,
+        "showValue": "auto",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ts AS \"time\", action AS \"state\" FROM control_events WHERE $__timeFilter(ts) ORDER BY ts",
+          "refId": "A"
+        }
+      ],
+      "title": "Controller state",
+      "type": "state-timeline"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescale"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Item"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 78
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unit"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 65
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Updated"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 9,
+        "x": 15,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_sensor AS (\n  SELECT DISTINCT ON (metric) metric, value, ts\n  FROM sensor_data\n  WHERE metric IN ('ambient', 'internal', 'gravity')\n  ORDER BY metric, ts DESC\n), rows AS (\n  SELECT\n    1 AS ord,\n    'Internal' AS item,\n    coalesce((SELECT to_char(value, 'FM990.00') FROM latest_sensor WHERE metric = 'internal'), '-') AS value,\n    '°C' AS unit,\n    (SELECT ts FROM latest_sensor WHERE metric = 'internal') AS updated\n  UNION ALL\n  SELECT\n    2 AS ord,\n    'Gravity' AS item,\n    coalesce((SELECT to_char(value, 'FM990.000') FROM latest_sensor WHERE metric = 'gravity'), '-') AS value,\n    'SG' AS unit,\n    (SELECT ts FROM latest_sensor WHERE metric = 'gravity') AS updated\n  UNION ALL\n  SELECT\n    3 AS ord,\n    'Ambient' AS item,\n    coalesce((SELECT to_char(value, 'FM990.00') FROM latest_sensor WHERE metric = 'ambient'), '-') AS value,\n    '°C' AS unit,\n    (SELECT ts FROM latest_sensor WHERE metric = 'ambient') AS updated\n  UNION ALL\n  SELECT\n    4 AS ord,\n    'Control' AS item,\n    coalesce((SELECT action FROM control_events ORDER BY ts DESC LIMIT 1), '-') AS value,\n    'N/A' AS unit,\n    (SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1) AS updated\n)\nSELECT\n  item AS \"Item\",\n  value AS \"Value\",\n  unit AS \"Unit\",\n  coalesce(to_char(updated, 'YYYY-MM-DD HH24:MI:SS'), '-') AS \"Updated\"\nFROM rows\nORDER BY ord",
+          "refId": "A"
+        }
+      ],
+      "title": "Current status",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescale"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "purple",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
+            "pointSize": 6,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 3,
+          "mappings": [],
+          "max": 1.12,
+          "min": 0.99,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 15,
+        "x": 0,
+        "y": 11
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "targets": [
+        {
+          "dataset": "buranbrew",
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT ts AS time, value AS \"gravity\" FROM sensor_data WHERE metric='gravity' AND $__timeFilter(ts) ORDER BY ts",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Specific gravity (SG)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescale"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Alert"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 78
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "applyToRow": true,
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "pattern": "^(stale|warning)$",
+                      "result": {
+                        "color": "dark-red"
+                      }
+                    },
+                    "type": "regex"
+                  }
+                ]
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Remark"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 265
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 9,
+        "x": 15,
+        "y": 15
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH expected(metric, label, ord) AS (\n  VALUES\n    ('ambient', 'Ambient', 1),\n    ('internal', 'Internal', 2),\n    ('gravity', 'Gravity', 3)\n), latest_sensor AS (\n  SELECT DISTINCT ON (metric) metric, value, ts\n  FROM sensor_data\n  WHERE metric IN ('ambient', 'internal', 'gravity')\n  ORDER BY metric, ts DESC\n), freshness AS (\n  SELECT\n    e.ord,\n    e.metric,\n    e.label,\n    coalesce(extract(epoch FROM now() - l.ts), 1000000000)::double precision AS age_s,\n    l.value,\n    l.ts\n  FROM expected e\n  LEFT JOIN latest_sensor l USING (metric)\n), sensor_summary AS (\n  SELECT\n    CASE WHEN count(*) FILTER (WHERE age_s > 180) > 0 THEN 'stale' ELSE 'OK' END AS status,\n    CASE\n      WHEN count(*) FILTER (WHERE age_s > 180) > 0 THEN\n        'stale: ' || string_agg(label, ', ' ORDER BY ord) FILTER (WHERE age_s > 180)\n      ELSE 'all fresh'\n    END AS remark\n  FROM freshness\n), control_freshness AS (\n  SELECT\n    coalesce(extract(epoch FROM now() - (\n      SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1\n    )), 1000000000)::double precision AS age_s,\n    (SELECT action FROM control_events ORDER BY ts DESC LIMIT 1) AS action,\n    (SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1) AS ts\n), gravity_last_two AS (\n  SELECT\n    row_number() OVER (ORDER BY ts DESC) AS rn,\n    ts,\n    value\n  FROM sensor_data\n  WHERE metric = 'gravity'\n  ORDER BY ts DESC\n  LIMIT 2\n), gravity_pair AS (\n  SELECT\n    max(value) FILTER (WHERE rn = 1) AS current_sg,\n    max(value) FILTER (WHERE rn = 2) AS previous_sg,\n    max(ts) FILTER (WHERE rn = 1) AS current_ts,\n    max(ts) FILTER (WHERE rn = 2) AS previous_ts\n  FROM gravity_last_two\n), control_run AS (\n  SELECT\n    (SELECT action FROM control_events ORDER BY ts DESC LIMIT 1) AS action,\n    (SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1) AS latest_ts\n), control_calc AS (\n  SELECT\n    action,\n    latest_ts,\n    CASE\n      WHEN action IN ('HEAT', 'COOL')\n       AND latest_ts > now() - interval '3 minutes'\n       AND NOT EXISTS (\n         SELECT 1\n         FROM control_events\n         WHERE action = 'IDLE'\n           AND ts > now() - interval '2 hours'\n           AND ts <= latest_ts\n       )\n      THEN extract(epoch FROM now() - coalesce(\n        (SELECT min(ts)\n         FROM control_events\n         WHERE action IN ('HEAT', 'COOL')\n           AND ts > now() - interval '3 hours'),\n        latest_ts\n      ))\n      ELSE 0.0\n    END::double precision AS active_run_s\n  FROM control_run\n), rows AS (\n  SELECT\n    1 AS ord,\n    'Sensors' AS alert,\n    status,\n    remark\n  FROM sensor_summary\n\n  UNION ALL\n\n  SELECT\n    2 AS ord,\n    'Control' AS alert,\n    CASE WHEN age_s > 180 THEN 'stale' ELSE 'OK' END AS status,\n    coalesce('latest=' || action || ', ', '') || 'age=' || round(age_s)::text || 's' AS remark\n  FROM control_freshness\n\n  UNION ALL\n\n  SELECT\n    3 AS ord,\n    'Temperature safety' AS alert,\n    CASE\n      WHEN EXISTS (\n        SELECT 1\n        FROM latest_sensor\n        WHERE metric = 'internal'\n          AND ts > now() - interval '3 minutes'\n          AND (value < 5.0 OR value > 30.0)\n      ) THEN 'warning'\n      ELSE 'OK'\n    END AS status,\n    CASE\n      WHEN EXISTS (\n        SELECT 1\n        FROM latest_sensor\n        WHERE metric = 'internal'\n          AND ts > now() - interval '3 minutes'\n          AND (value < 5.0 OR value > 30.0)\n      ) THEN 'dangerous temperature'\n      ELSE coalesce(\n        (SELECT 'internal=' || to_char(value, 'FM990.00') || ' °C' FROM latest_sensor WHERE metric = 'internal'),\n        'no internal reading'\n      )\n    END AS remark\n\n  UNION ALL\n\n  SELECT\n    4 AS ord,\n    'SG jump' AS alert,\n    CASE\n      WHEN current_ts > now() - interval '3 minutes'\n       AND previous_ts > now() - interval '1 hour'\n       AND abs(current_sg - previous_sg) > 0.005\n      THEN 'warning'\n      ELSE 'OK'\n    END AS status,\n    CASE\n      WHEN current_ts > now() - interval '3 minutes'\n       AND previous_ts > now() - interval '1 hour'\n       AND abs(current_sg - previous_sg) > 0.005\n      THEN 'abnormal SG jump: '\n           || to_char(previous_sg, 'FM990.000')\n           || ' -> '\n           || to_char(current_sg, 'FM990.000')\n      WHEN previous_sg IS NULL OR current_sg IS NULL THEN 'need two gravity readings'\n      ELSE 'Δ=' || to_char(abs(current_sg - previous_sg), 'FM990.000')\n    END AS remark\n  FROM gravity_pair\n\n  UNION ALL\n\n  SELECT\n    5 AS ord,\n    'Effectiveness' AS alert,\n    CASE\n      WHEN active_run_s > 7200 AND action IN ('HEAT', 'COOL') THEN 'warning'\n      ELSE 'OK'\n    END AS status,\n    CASE\n      WHEN active_run_s > 7200 AND action = 'HEAT' THEN 'heating ineffective'\n      WHEN active_run_s > 7200 AND action = 'COOL' THEN 'cooling ineffective'\n      WHEN action IN ('HEAT', 'COOL') THEN 'active=' || round(active_run_s / 60.0)::text || ' min'\n      ELSE coalesce('action=' || action, 'no control event')\n    END AS remark\n  FROM control_calc\n)\nSELECT alert AS \"Alert\", status AS \"Status\", remark AS \"Remark\"\nFROM rows\nORDER BY ord",
+          "refId": "A"
+        }
+      ],
+      "title": "Alerts",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 42,
+  "tags": [
+    "buranbrew",
+    "alerts"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Cellarman",
+  "uid": "buranbrew-main",
+  "version": 13
+}

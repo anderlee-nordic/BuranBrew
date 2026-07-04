@@ -1,0 +1,51 @@
+# BuranBrew telemetry stack orchestration.
+#
+# Dependency order:
+#   redis ─┐
+#   pg-init ─> postgres ─> pg-schema ─> consumer
+#                      └────────────── grafana
+version: "0.5"
+
+processes:
+  redis:
+    command: "bash $TELEMETRY_SRC/scripts/redis-run.sh"
+    availability: { restart: on_failure, backoff_seconds: 3 }
+    readiness_probe:
+      exec:
+        command: 'redis-cli -h 127.0.0.1 -p "$REDIS_PORT" ping | grep -q PONG'
+      initial_delay_seconds: 1
+      period_seconds: 2
+
+  pg-init:
+    command: "bash $TELEMETRY_SRC/scripts/pg-init.sh"
+    availability: { restart: "no" }
+
+  postgres:
+    command: "bash $TELEMETRY_SRC/scripts/pg-run.sh"
+    availability: { restart: on_failure, backoff_seconds: 3 }
+    depends_on:
+      pg-init: { condition: process_completed_successfully }
+    readiness_probe:
+      exec:
+        command: 'pg_isready -h 127.0.0.1 -p "$POSTGRES_PORT" -U buranbrew'
+      initial_delay_seconds: 2
+      period_seconds: 2
+
+  pg-schema:
+    command: "bash $TELEMETRY_SRC/scripts/pg-schema.sh"
+    availability: { restart: "no" }
+    depends_on:
+      postgres: { condition: process_healthy }
+
+  consumer:
+    command: "bash $TELEMETRY_SRC/scripts/consumer-run.sh"
+    availability: { restart: on_failure, backoff_seconds: 5 }
+    depends_on:
+      pg-schema: { condition: process_completed_successfully }
+      redis: { condition: process_healthy }
+
+  grafana:
+    command: "bash $TELEMETRY_SRC/scripts/grafana-run.sh"
+    availability: { restart: on_failure, backoff_seconds: 5 }
+    depends_on:
+      postgres: { condition: process_healthy }

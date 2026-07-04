@@ -1,0 +1,579 @@
+# Grafana-managed alert rules for BuranBrew telemetry (Cellarman).
+# Provisioned by scripts/grafana-run.sh into GF_PATHS_PROVISIONING/alerting.
+#
+# Rules implemented:
+#   - ambient/internal/gravity/control telemetry stale: latest row older than 3m, held for 2m
+#   - internal temperature outside [5, 30] C
+#   - impossible gravity jump between the last two SG readings
+#   - ineffective controller action: latest HEAT/COOL run has no IDLE for >2h
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: BuranBrew operational safety
+      folder: BuranBrew
+      interval: 1m
+      rules:
+        - uid: bb_internal_temp_dangerous
+          title: BuranBrew internal temperature outside safe range
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    WITH latest AS (
+                      SELECT value, ts
+                      FROM sensor_data
+                      WHERE metric = 'internal'
+                      ORDER BY ts DESC
+                      LIMIT 1
+                    )
+                    SELECT
+                      now() AS "time",
+                      CASE
+                        WHEN EXISTS (
+                          SELECT 1
+                          FROM latest
+                          WHERE ts > now() - interval '3 minutes'
+                            AND (value < 5.0 OR value > 30.0)
+                        ) THEN 1.0
+                        ELSE 0.0
+                      END::double precision AS dangerous_temperature;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0.5
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: OK
+          execErrState: Alerting
+          for: 2m
+          annotations:
+            description: Latest fresh internal temperature is outside 5-30 C. The alert grid shows the latest value.
+            summary: Internal temperature is outside the safe range
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: temperature
+            severity: critical
+          isPaused: false
+        - uid: bb_gravity_impossible_jump
+          title: BuranBrew gravity impossible jump
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    WITH last_two AS (
+                      SELECT
+                        row_number() OVER (ORDER BY ts DESC) AS rn,
+                        ts,
+                        value
+                      FROM sensor_data
+                      WHERE metric = 'gravity'
+                      ORDER BY ts DESC
+                      LIMIT 2
+                    ), pair AS (
+                      SELECT
+                        max(value) FILTER (WHERE rn = 1) AS current_sg,
+                        max(value) FILTER (WHERE rn = 2) AS previous_sg,
+                        max(ts) FILTER (WHERE rn = 1) AS current_ts,
+                        max(ts) FILTER (WHERE rn = 2) AS previous_ts
+                      FROM last_two
+                    )
+                    SELECT
+                      now() AS "time",
+                      CASE
+                        WHEN current_ts > now() - interval '3 minutes'
+                         AND previous_ts > now() - interval '1 hour'
+                        THEN abs(current_sg - previous_sg)
+                        ELSE 0.0
+                      END::double precision AS jump_sg
+                    FROM pair;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0.005
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: OK
+          execErrState: Alerting
+          annotations:
+            description: Latest two fresh SG readings differ by more than 0.005. The alert grid shows the previous and current readings.
+            summary: Gravity reading jumped by an implausible amount
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: gravity
+            severity: warning
+          isPaused: false
+        - uid: bb_controller_action_ineffective
+          title: BuranBrew controller action ineffective
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 14400
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    WITH latest AS (
+                      SELECT
+                        (SELECT action FROM control_events ORDER BY ts DESC LIMIT 1) AS action,
+                        (SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1) AS latest_ts
+                    ), calc AS (
+                      SELECT
+                        action,
+                        latest_ts,
+                        CASE
+                          WHEN action IN ('HEAT', 'COOL')
+                           AND latest_ts > now() - interval '3 minutes'
+                           AND NOT EXISTS (
+                             SELECT 1
+                             FROM control_events
+                             WHERE action = 'IDLE'
+                               AND ts > now() - interval '2 hours'
+                               AND ts <= latest_ts
+                           )
+                          THEN extract(epoch FROM now() - coalesce(
+                            (SELECT min(ts)
+                             FROM control_events
+                             WHERE action IN ('HEAT', 'COOL')
+                               AND ts > now() - interval '3 hours'),
+                            latest_ts
+                          ))
+                          ELSE 0.0
+                        END AS active_run_s
+                      FROM latest
+                    )
+                    SELECT now() AS "time", active_run_s::double precision
+                    FROM calc;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 14400
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 7200
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: OK
+          execErrState: Alerting
+          annotations:
+            description: Heating or cooling has been active for more than 2 hours without an IDLE event. The alert grid identifies which action is ineffective.
+            summary: Controller action appears ineffective
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: controller
+            severity: warning
+          isPaused: false
+    - orgId: 1
+      name: BuranBrew telemetry freshness
+      folder: BuranBrew
+      interval: 1m
+      rules:
+        - uid: bb_sensor_ambient_stale
+          title: BuranBrew ambient sensor telemetry stale
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    SELECT
+                      now() AS "time",
+                      coalesce(
+                        extract(epoch FROM now() - (
+                          SELECT ts
+                          FROM sensor_data
+                          WHERE metric = 'ambient'
+                          ORDER BY ts DESC
+                          LIMIT 1
+                        )),
+                        1000000000
+                      )::double precision AS age_s;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 180
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 2m
+          annotations:
+            description: No ambient sensor sample has reached TimescaleDB for more than 3 minutes. Check model/run.py, Matter reads, Redis, the consumer, and Postgres.
+            summary: Ambient temperature telemetry is stale
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: freshness
+            metric: ambient
+            severity: warning
+          isPaused: false
+        - uid: bb_sensor_internal_stale
+          title: BuranBrew internal sensor telemetry stale
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    SELECT
+                      now() AS "time",
+                      coalesce(
+                        extract(epoch FROM now() - (
+                          SELECT ts
+                          FROM sensor_data
+                          WHERE metric = 'internal'
+                          ORDER BY ts DESC
+                          LIMIT 1
+                        )),
+                        1000000000
+                      )::double precision AS age_s;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 180
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 2m
+          annotations:
+            description: No internal/Tilt temperature sample has reached TimescaleDB for more than 3 minutes. Check Tilt BLE updates, model/run.py, Redis, the consumer, and Postgres.
+            summary: Internal temperature telemetry is stale
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: freshness
+            metric: internal
+            severity: warning
+          isPaused: false
+        - uid: bb_sensor_gravity_stale
+          title: BuranBrew gravity telemetry stale
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    SELECT
+                      now() AS "time",
+                      coalesce(
+                        extract(epoch FROM now() - (
+                          SELECT ts
+                          FROM sensor_data
+                          WHERE metric = 'gravity'
+                          ORDER BY ts DESC
+                          LIMIT 1
+                        )),
+                        1000000000
+                      )::double precision AS age_s;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 180
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 2m
+          annotations:
+            description: No Tilt gravity sample has reached TimescaleDB for more than 3 minutes. Check BLE reception, Tilt battery/orientation, model/run.py, Redis, the consumer, and Postgres.
+            summary: Gravity telemetry is stale
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: freshness
+            metric: gravity
+            severity: warning
+          isPaused: false
+        - uid: bb_control_loop_stale
+          title: BuranBrew control-loop telemetry stale
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: timescale
+              model:
+                datasource:
+                    type: grafana-postgresql-datasource
+                    uid: timescale
+                editorMode: code
+                format: time_series
+                intervalMs: 1000
+                maxDataPoints: 43200
+                rawQuery: true
+                rawSql: |
+                    SELECT
+                      now() AS "time",
+                      coalesce(
+                        extract(epoch FROM now() - (
+                          SELECT ts
+                          FROM control_events
+                          ORDER BY ts DESC
+                          LIMIT 1
+                        )),
+                        1000000000
+                      )::double precision AS age_s;
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 3600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 180
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - A
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: classic_conditions
+          dashboardUid: buranbrew-main
+          panelId: 6
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 2m
+          annotations:
+            description: No HEAT/IDLE/COOL control event has reached TimescaleDB for more than 3 minutes. Check model/run.py first, then Redis, the consumer, and Postgres.
+            summary: Control-loop telemetry is stale
+          labels:
+            app: buranbrew
+            component: telemetry
+            kind: freshness
+            metric: control_events
+            severity: critical
+          isPaused: false
+

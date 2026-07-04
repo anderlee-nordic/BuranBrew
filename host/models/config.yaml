@@ -1,0 +1,27 @@
+# BuranBrew model config
+
+chip_tool: chip-tool
+storage_dir: ~/buranbrew/chip-storage
+
+nodes:
+  sensor: 1        # amnin_sensors tag
+  plug_heat: 11    # IKEA plug driving the heater
+  plug_cool: 12    # IKEA plug driving the cooler
+
+endpoints:
+  ambient: 1       # BME680 ambient temperature (C)
+  internal: 2      # Tilt internal temperature (C)
+  gravity: 3       # Tilt SG, RelativeHumidityMeasurement carrying SG x1000
+
+setpoint_c: 19.0   # desired calibrated internal temperature (C)
+
+# Sensor calibrations
+ambient_offset_c: 0.0     # applied to EP1
+internal_offset_c: 0.0    # applied to EP2
+sg_offset: 0.000          # applied to EP3
+
+period_s: 60       # model update period
+chip_timeout_s: 30 # sleepy end device
+
+redis:               # telemetry emit
+  url: redis://127.0.0.1:${REDIS_PORT}/0

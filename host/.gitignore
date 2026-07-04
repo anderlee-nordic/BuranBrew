@@ -1,0 +1,26 @@
+# Nix
+# `nix build` symlink; devShell/direnv state
+result
+result-*
+.direnv/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# CHIP-TOOL
+# storage lives at ~/buranbrew/chip-storage (outside the repo) — not ignored here,
+# but if anyone ever points --storage-directory into the tree, keep it out:
+chip-storage/
+chip_tool_kvs
+*.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+*.log

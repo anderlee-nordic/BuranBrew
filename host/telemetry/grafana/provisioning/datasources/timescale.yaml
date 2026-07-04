@@ -1,0 +1,16 @@
+apiVersion: 1
+datasources:
+- name: TimescaleDB
+  uid: timescale
+  type: grafana-postgresql-datasource
+  access: proxy
+  url: 127.0.0.1:${POSTGRES_PORT}
+  user: buranbrew
+  jsonData:
+    database: buranbrew
+    sslmode: disable
+    timescaledb: true
+    maxOpenConns: 4
+    maxIdleConns: 2
+  isDefault: true
+  editable: false
