@@ -9,12 +9,12 @@
 apiVersion: 1
 groups:
     - orgId: 1
-      name: BuranBrew operational safety
+      name: Operational safety
       folder: BuranBrew
       interval: 1m
       rules:
         - uid: bb_internal_temp_dangerous
-          title: BuranBrew internal temperature outside safe range
+          title: Internal temperature outside safe range
           condition: B
           data:
             - refId: A
@@ -94,7 +94,7 @@ groups:
             severity: critical
           isPaused: false
         - uid: bb_gravity_impossible_jump
-          title: BuranBrew gravity impossible jump
+          title: Gravity impossible jump
           condition: B
           data:
             - refId: A
@@ -181,7 +181,7 @@ groups:
             severity: warning
           isPaused: false
         - uid: bb_controller_action_ineffective
-          title: BuranBrew controller action ineffective
+          title: Controller action ineffective
           condition: B
           data:
             - refId: A
@@ -273,12 +273,12 @@ groups:
             severity: warning
           isPaused: false
     - orgId: 1
-      name: BuranBrew telemetry freshness
+      name: Telemetry freshness
       folder: BuranBrew
       interval: 1m
       rules:
         - uid: bb_sensor_ambient_stale
-          title: BuranBrew ambient sensor telemetry stale
+          title: Ambient sensor telemetry stale
           condition: B
           data:
             - refId: A
@@ -353,7 +353,7 @@ groups:
             severity: warning
           isPaused: false
         - uid: bb_sensor_internal_stale
-          title: BuranBrew internal sensor telemetry stale
+          title: Internal sensor telemetry stale
           condition: B
           data:
             - refId: A
@@ -428,7 +428,7 @@ groups:
             severity: warning
           isPaused: false
         - uid: bb_sensor_gravity_stale
-          title: BuranBrew gravity telemetry stale
+          title: Gravity telemetry stale
           condition: B
           data:
             - refId: A
@@ -503,7 +503,7 @@ groups:
             severity: warning
           isPaused: false
         - uid: bb_control_loop_stale
-          title: BuranBrew control-loop telemetry stale
+          title: Control-loop telemetry stale
           condition: B
           data:
             - refId: A

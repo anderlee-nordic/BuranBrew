@@ -693,6 +693,31 @@
       ],
       "title": "Alerts",
       "type": "table"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 7,
+        "x": 0,
+        "y": 19
+      },
+      "id": 7,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div align=\"center\">\n\n[![Repository](https://img.shields.io/badge/GitHub-View%20Repository-181717?plastic&logo=github&logoColor=white)](https://github.com/anderlee-nordic/BuranBrew)\n[![Stars](https://img.shields.io/github/stars/anderlee-nordic/BuranBrew?style=plastic&logo=github&label=Stars)](https://github.com/anderlee-nordic/BuranBrew/stargazers)\n[![Issues](https://img.shields.io/github/issues/anderlee-nordic/BuranBrew?style=plastic&logo=github&label=Issues)](https://github.com/anderlee-nordic/BuranBrew/issues)\n\n</div>",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.3.6+security-01",
+      "title": "Send feedback to BuranBrew",
+      "type": "text"
     }
   ],
   "preload": false,
@@ -713,5 +738,5 @@
   "timezone": "browser",
   "title": "Cellarman",
   "uid": "buranbrew-main",
-  "version": 13
+  "version": 3
 }
