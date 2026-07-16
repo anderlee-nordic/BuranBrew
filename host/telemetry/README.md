@@ -10,7 +10,7 @@ Complete the host bring-up steps in the
 
 ## 1. Start Cellarman
 
-### One-time setup
+### One-time setup (can skip if /host is not deployed under /root)
 
 #### Create the `buran` user
 ```bash
@@ -125,7 +125,7 @@ SET og = 1.052
 WHERE ended_at IS NULL;
 ```
 
-## 3. Start the fermentation controller
+## 3. Start the control model
 
 Run the control model as `root`, because it uses the Matter controller storage:
 
@@ -144,18 +144,18 @@ model write to the same telemetry streams and would mix synthetic and real data.
 
 ## 4. Monitor the fermentation
 
-Use the **Cellarman** dashboard for routine checks:
+Use the Grafana dashboard for routine checks:
 
-- **Internal**: beer or Tilt temperature.
-- **Ambient**: chamber or room temperature.
-- **Gravity**: Tilt specific gravity.
-- **Control**: current `HEAT`, `IDLE`, or `COOL` decision.
+- **Internal**: beer temperature (inside the fermentor).
+- **Ambient**: room temperature.
+- **Gravity**: beer specific gravity.
+- **Control**: current `HEAT`, `IDLE`, or `COOL` control state.
 - **Current batch**: active batch metadata and age.
-- **Alerts**: includes sensor freshness, control freshness, temperature safety, gravity
-  jumps, and controller effectiveness.
+- **Alerts**: includes sensor staleness, control staleness, temperature safety,
+gravity jumps, and controller effectiveness.
 
-Real sensor data normally arrives once per minute. A single missing gravity point
-can occur when the Tilt beacon is not received; short gaps do not require batch
+Real sensor data arrives once per minute. A single sample missing can occur
+when the Tilt beacon is not received; short gaps do not require batch
 changes or re-commissioning.
 
 ### Alert meanings
