@@ -1,4 +1,4 @@
-# Workspace setup (NCS v3.3.0)
+# Workspace Setup (NCS v3.3.0)
 
 This is a Zephyr workspace application. It lives inside the `BuranBrew` workspace
 alongside the `nrf/`, `zephyr/`, and `bootloader/` repositories at the `v3.3.0`

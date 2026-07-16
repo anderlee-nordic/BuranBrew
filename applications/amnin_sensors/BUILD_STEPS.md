@@ -1,4 +1,4 @@
-# BUILD_STEPS
+# Build Steps
 
 This page describes the build and flash steps of `amnin_sensors` firmware for
 the nRF54L15 tag.

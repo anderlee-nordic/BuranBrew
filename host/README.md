@@ -1,4 +1,4 @@
-# Host Bring-up and Commision Guide
+# Host Bring-up & Commision Guide
 
 BuranBrew employ a Raspberry Pi 4 as the Matter controller and OpenThread Border
 Router for one sensor node and two actuator nodes.
