@@ -1,20 +1,23 @@
 ---
 name: RFC
 about: Request For Comments (RFC)
-title: "[RFC]"
+title: "[RFC] "
 labels: ''
 assignees: ''
 
 ---
 
-**Is your RFC related to a problem? Please describe.**
-A clear and concise description of what the problem is. E.g., I'm always frustrated when [...]
+**Abstract**
+One or two sentences to describe what this RFC is about.
 
-**Describe the solution you'd like**
+**Background**
+Any related context or issues.
+
+**Proposal**
 A clear and concise description of what you want to happen.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Preliminary study**
+A description of any alternative solutions or features you've considered.
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+**Additional remark**
+Add any other context about the feature request here.

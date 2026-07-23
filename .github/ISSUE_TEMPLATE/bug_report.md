@@ -1,32 +1,26 @@
 ---
 name: Bug report
 about: Create a bug report
-title: "[BUG]"
+title: "[BUG] "
 labels: ''
 assignees: ''
 
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A concise description of what's wrong.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**Steps to reproduce**
+Use ordered list please. 
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Expected behavior vs actual**
+State the expected behavior vs what has actually been observed.
 
 **Logs**
-If applicable, add logs to help explain your problem.
+If applicable, add logs or screenshots.
 
-**Environment:**
- - Arch [e.g. x86_64] 
- - OS: [e.g. Linux distro]
- ...
+**Environment**
+Add relevant environment parameters, such as versions, configurations, ...etc.
 
-**Additional context**
+**Additional remark**
 Add any other context about the problem here.
