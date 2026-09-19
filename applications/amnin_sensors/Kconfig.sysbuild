@@ -4,45 +4,4 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
-#### Bootloader
-choice BOOTLOADER
-	default BOOTLOADER_MCUBOOT
-endchoice
-
-if BOOTLOADER_MCUBOOT
-
-#### DFU multi-image support
-config DFU_MULTI_IMAGE_PACKAGE_BUILD
-	default y
-
-config DFU_MULTI_IMAGE_PACKAGE_APP
-	default y
-
-config PM_EXTERNAL_FLASH_MCUBOOT_SECONDARY
-	default y
-
-endif # BOOTLOADER_MCUBOOT
-
-#### Enable generating factory data
-config MATTER_FACTORY_DATA_GENERATE
-	default y
-
-# Internal flash only for nRF54L15 tag with compression
-if BOARD_NRF54L15TAG
-
-config PM_OVERRIDE_EXTERNAL_DRIVER_CHECK
-	default y
-
-config PM_EXTERNAL_FLASH_MCUBOOT_SECONDARY
-	default y
-
-choice MCUBOOT_MODE
-	default MCUBOOT_MODE_OVERWRITE_ONLY
-endchoice
-
-config MCUBOOT_COMPRESSED_IMAGE_SUPPORT
-	default y
-
-endif
-
 source "share/sysbuild/Kconfig"
