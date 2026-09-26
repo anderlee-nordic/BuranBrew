@@ -158,18 +158,18 @@ Real sensor data arrives once per minute. A single sample missing can occur
 when the Tilt beacon is not received; short gaps do not require batch
 changes or re-commissioning.
 
-### Alert meanings
+### Alert interpretation
 
-| Dashboard status | Meaning | Operator action |
+| Dashboard status | Meaning | Troubleshoot action |
 |---|---|---|
-| `Sensors: stale` | One or more sensor series has no new database row for over 3 minutes. | Check whether the model is running and whether Matter reads are still succeeding. |
-| `Control: stale` | No new controller decision for over 3 minutes. | Check the model process before changing the fermentation setup. |
-| `Temperature safety: warning` | A fresh internal reading is below 5 °C or above 30 °C. | Check the beer and fermentor immediately, then verify the sensor reading. |
-| `SG jump: warning` | Two recent gravity readings differ by more than 0.005. | Treat the latest reading as suspect until later samples confirm it. |
-| `Effectiveness: warning` | Heating or cooling has remained active for more than 2 hours without reaching `IDLE`. | Check the plug, heater or cooler, chamber, and temperature trend. |
+| `Sensor stale` | One or more sensor series has no new database row for over 3 minutes. | Check whether the model is running and whether Matter reads are still succeeding. |
+| `Control stale` | No new controller decision for over 3 minutes. | Check the model process before changing the fermentation setup. |
+| `Temperature safety` | A fresh internal reading is below 5 °C or above 30 °C. | Check the beer and fermentor immediately, then verify the sensor reading. |
+| `SG jump` | Two recent gravity readings differ by more than 0.005. | Treat the latest reading as suspect until later samples confirm it. |
+| `Ineffective control` | Heating or cooling has remained active for more than 2 hours without reaching `IDLE`. | Check the heater or cooler, fermentor, and temperature trend. |
 
-Grafana evaluates rules once per minute. The **staleness** and **temperature safety** alerts must
-remain abnormal for additional 2 minutes before they enter the firing state.
+Grafana evaluates rules once per minute. The **staleness** and **temperature safety**
+alerts have additional pending time of 2 minutes before they enter the firing state.
 
 ## 5. Update batch information
 

@@ -571,128 +571,39 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "timescale"
-      },
       "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "footer": {
-              "reducers": []
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "transparent",
-                "value": 0
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Alert"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 150
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Status"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 78
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "applyToRow": true,
-                  "mode": "basic",
-                  "type": "color-background"
-                }
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "pattern": "^(stale|warning)$",
-                      "result": {
-                        "color": "dark-red"
-                      }
-                    },
-                    "type": "regex"
-                  }
-                ]
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "transparent",
-                      "value": 0
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Remark"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 265
-              }
-            ]
-          }
-        ]
+        "defaults": {},
+        "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 10,
         "w": 9,
         "x": 15,
         "y": 15
       },
-      "id": 6,
+      "id": 8,
       "options": {
-        "cellHeight": "sm",
-        "showHeader": true
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "showInactiveAlerts": false,
+        "sortOrder": 4,
+        "stateFilter": {
+          "error": true,
+          "firing": true,
+          "noData": false,
+          "normal": true,
+          "pending": true,
+          "recovering": true
+        },
+        "viewMode": "list"
       },
       "pluginVersion": "12.3.6+security-01",
-      "targets": [
-        {
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH expected(metric, label, ord) AS (\n  VALUES\n    ('ambient', 'Ambient', 1),\n    ('internal', 'Internal', 2),\n    ('gravity', 'Gravity', 3)\n), latest_sensor AS (\n  SELECT DISTINCT ON (metric) metric, value, ts\n  FROM sensor_data\n  WHERE metric IN ('ambient', 'internal', 'gravity')\n  ORDER BY metric, ts DESC\n), freshness AS (\n  SELECT\n    e.ord,\n    e.metric,\n    e.label,\n    coalesce(extract(epoch FROM now() - l.ts), 1000000000)::double precision AS age_s,\n    l.value,\n    l.ts\n  FROM expected e\n  LEFT JOIN latest_sensor l USING (metric)\n), sensor_summary AS (\n  SELECT\n    CASE WHEN count(*) FILTER (WHERE age_s > 180) > 0 THEN 'stale' ELSE 'OK' END AS status,\n    CASE\n      WHEN count(*) FILTER (WHERE age_s > 180) > 0 THEN\n        'stale: ' || string_agg(label, ', ' ORDER BY ord) FILTER (WHERE age_s > 180)\n      ELSE 'all fresh'\n    END AS remark\n  FROM freshness\n), control_freshness AS (\n  SELECT\n    coalesce(extract(epoch FROM now() - (\n      SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1\n    )), 1000000000)::double precision AS age_s,\n    (SELECT action FROM control_events ORDER BY ts DESC LIMIT 1) AS action,\n    (SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1) AS ts\n), gravity_last_two AS (\n  SELECT\n    row_number() OVER (ORDER BY ts DESC) AS rn,\n    ts,\n    value\n  FROM sensor_data\n  WHERE metric = 'gravity'\n  ORDER BY ts DESC\n  LIMIT 2\n), gravity_pair AS (\n  SELECT\n    max(value) FILTER (WHERE rn = 1) AS current_sg,\n    max(value) FILTER (WHERE rn = 2) AS previous_sg,\n    max(ts) FILTER (WHERE rn = 1) AS current_ts,\n    max(ts) FILTER (WHERE rn = 2) AS previous_ts\n  FROM gravity_last_two\n), control_run AS (\n  SELECT\n    (SELECT action FROM control_events ORDER BY ts DESC LIMIT 1) AS action,\n    (SELECT ts FROM control_events ORDER BY ts DESC LIMIT 1) AS latest_ts\n), control_calc AS (\n  SELECT\n    action,\n    latest_ts,\n    CASE\n      WHEN action IN ('HEAT', 'COOL')\n       AND latest_ts > now() - interval '3 minutes'\n       AND NOT EXISTS (\n         SELECT 1\n         FROM control_events\n         WHERE action = 'IDLE'\n           AND ts > now() - interval '2 hours'\n           AND ts <= latest_ts\n       )\n      THEN extract(epoch FROM now() - coalesce(\n        (SELECT min(ts)\n         FROM control_events\n         WHERE action IN ('HEAT', 'COOL')\n           AND ts > now() - interval '3 hours'),\n        latest_ts\n      ))\n      ELSE 0.0\n    END::double precision AS active_run_s\n  FROM control_run\n), rows AS (\n  SELECT\n    1 AS ord,\n    'Sensors' AS alert,\n    status,\n    remark\n  FROM sensor_summary\n\n  UNION ALL\n\n  SELECT\n    2 AS ord,\n    'Control' AS alert,\n    CASE WHEN age_s > 180 THEN 'stale' ELSE 'OK' END AS status,\n    coalesce('latest=' || action || ', ', '') || 'age=' || round(age_s)::text || 's' AS remark\n  FROM control_freshness\n\n  UNION ALL\n\n  SELECT\n    3 AS ord,\n    'Temperature safety' AS alert,\n    CASE\n      WHEN EXISTS (\n        SELECT 1\n        FROM latest_sensor\n        WHERE metric = 'internal'\n          AND ts > now() - interval '3 minutes'\n          AND (value < 5.0 OR value > 30.0)\n      ) THEN 'warning'\n      ELSE 'OK'\n    END AS status,\n    CASE\n      WHEN EXISTS (\n        SELECT 1\n        FROM latest_sensor\n        WHERE metric = 'internal'\n          AND ts > now() - interval '3 minutes'\n          AND (value < 5.0 OR value > 30.0)\n      ) THEN 'dangerous temperature'\n      ELSE coalesce(\n        (SELECT 'internal=' || to_char(value, 'FM990.00') || ' °C' FROM latest_sensor WHERE metric = 'internal'),\n        'no internal reading'\n      )\n    END AS remark\n\n  UNION ALL\n\n  SELECT\n    4 AS ord,\n    'SG jump' AS alert,\n    CASE\n      WHEN current_ts > now() - interval '3 minutes'\n       AND previous_ts > now() - interval '1 hour'\n       AND abs(current_sg - previous_sg) > 0.005\n      THEN 'warning'\n      ELSE 'OK'\n    END AS status,\n    CASE\n      WHEN current_ts > now() - interval '3 minutes'\n       AND previous_ts > now() - interval '1 hour'\n       AND abs(current_sg - previous_sg) > 0.005\n      THEN 'abnormal SG jump: '\n           || to_char(previous_sg, 'FM990.000')\n           || ' -> '\n           || to_char(current_sg, 'FM990.000')\n      WHEN previous_sg IS NULL OR current_sg IS NULL THEN 'need two gravity readings'\n      ELSE 'Δ=' || to_char(abs(current_sg - previous_sg), 'FM990.000')\n    END AS remark\n  FROM gravity_pair\n\n  UNION ALL\n\n  SELECT\n    5 AS ord,\n    'Effectiveness' AS alert,\n    CASE\n      WHEN active_run_s > 7200 AND action IN ('HEAT', 'COOL') THEN 'warning'\n      ELSE 'OK'\n    END AS status,\n    CASE\n      WHEN active_run_s > 7200 AND action = 'HEAT' THEN 'heating ineffective'\n      WHEN active_run_s > 7200 AND action = 'COOL' THEN 'cooling ineffective'\n      WHEN action IN ('HEAT', 'COOL') THEN 'active=' || round(active_run_s / 60.0)::text || ' min'\n      ELSE coalesce('action=' || action, 'no control event')\n    END AS remark\n  FROM control_calc\n)\nSELECT alert AS \"Alert\", status AS \"Status\", remark AS \"Remark\"\nFROM rows\nORDER BY ord",
-          "refId": "A"
-        }
-      ],
-      "title": "Alerts",
-      "type": "table"
+      "title": "Alert",
+      "type": "alertlist"
     },
     {
       "fieldConfig": {
@@ -738,5 +649,5 @@
   "timezone": "browser",
   "title": "Cellarman",
   "uid": "buranbrew-main",
-  "version": 3
+  "version": 1
 }
