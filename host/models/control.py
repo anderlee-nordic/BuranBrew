@@ -353,6 +353,18 @@ class ControlLoop:
             plan.window_s,
         )
 
+    def _emit_control_heartbeat(self, plan: ActuatorPlan) -> None:
+        """Refresh control telemetry even when the actuator state is unchanged."""
+        self._telemetry.control(
+            action=self._actuator.action,
+            diff_centi=self._last_diff_centi,
+            effort=plan.effort,
+            duty_cycle=plan.duty_cycle,
+            active_s=plan.active_s,
+            window_s=plan.window_s,
+            reason="heartbeat",
+        )
+
     def _control_update(self, now: float) -> None:
         try:
             ambient_c = (
@@ -405,6 +417,7 @@ class ControlLoop:
             self._emit_transition(transition)
 
         plan = self._actuator.plan(now)
+        self._emit_control_heartbeat(plan)
         self._telemetry.sensor("ambient", ambient_c)
         self._telemetry.sensor("internal", internal_c)
         if sg is not None:
