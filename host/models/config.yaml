@@ -20,8 +20,44 @@ ambient_offset_c: 0.0     # applied to EP1
 internal_offset_c: 0.0    # applied to EP2
 sg_offset: 0.000          # applied to EP3
 
-period_s: 60       # model update period
-chip_timeout_s: 30 # sleepy end device
+period_s: 60        # model update period
+chip_timeout_s: 30  # sleepy end device
 
 redis:               # telemetry emit
   url: redis://127.0.0.1:${REDIS_PORT}/0
+
+# Control tuning
+# PI output is normalized to [-1.0, +1.0]. The sign selects HEAT/COOL and
+# abs(effort) becomes the fraction of window_s that the actuator stays ON.
+#
+# E.g., effort=+0.30 and window_s=600 -> HEAT for 180 s, then IDLE.
+control:
+  # PI feedback + ambient feedforward
+  kp: 0.90
+  ki_per_hour: 0.08
+  kff: 0.04
+  integral_limit: 0.50
+
+  # Maximum elapsed time used by one I-term update. Prevents a delayed cycle
+  # from causing one large integral jump.
+  integral_dt_max_s: 300
+
+  # Exponential moving-average filters. 1.0 -> no filtering. Lower -> smoother.
+  ambient_filter_alpha: 0.25
+  internal_filter_alpha: 0.25
+
+  # Time-proportional output
+  window_s: 1800
+  effort_deadband: 0.34
+  actuator_tick_s: 1
+
+  # Skip pulses < these values.
+  # They are avoided because they add little useful thermal effect.
+  heat_min_on_s: 600
+  cool_min_on_s: 600
+
+  # HEAT-COOL transition must pass through IDLE for this long.
+  reverse_idle_s: 10
+
+  # If fresh controller output stops, force IDLE after this time.
+  command_stale_timeout_s: 180
