@@ -1,9 +1,9 @@
-v3.3.0
+v3.4.1
 
 # nRF Connect SDK version this application is built and verified against.
 #
 # Installed with the nrfutil SDK manager:
-#   nrfutil sdk-manager install v3.3.0
+#   nrfutil sdk-manager install v3.4.1
 #
-# West workspace (topdir): ~/ncs/v3.3.0
-# Toolchain:               ~/ncs/toolchains/911f4c5c26
+# West workspace (topdir): ~/ncs/v3.4.1
+# Toolchain:               /opt/nordic/ncs/toolchains/97226bad62

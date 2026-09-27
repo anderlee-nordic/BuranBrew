@@ -12,9 +12,9 @@ sensor plus a Tilt hydrometer read over a BLE observer. See
 
 ## Prerequisites
 
-- NCS `v3.3.0` workspace prepared per `WORKSPACE_SETUP.md`.
+- NCS `v3.4.1` workspace prepared per `WORKSPACE_SETUP.md`.
 - This repo's `amnin_sensors/` reproduced at
-  `~/ncs/v3.3.0/BuranBrew/applications/amnin_sensors` as a Zephyr workspace
+  `~/ncs/v3.4.1/BuranBrew/applications/amnin_sensors` as a Zephyr workspace
   application.
 - nRF54L15 TAG board connected via its J-Link probe.
 - Toolchain environment active (so `west`, `nrfutil`, and the Matter west
@@ -23,7 +23,7 @@ sensor plus a Tilt hydrometer read over a BLE observer. See
 All commands below run from the application directory:
 
 ```
-cd ~/ncs/v3.3.0/BuranBrew/applications/amnin_sensors
+cd ~/ncs/v3.4.1/BuranBrew/applications/amnin_sensors
 ```
 
 ## Data model

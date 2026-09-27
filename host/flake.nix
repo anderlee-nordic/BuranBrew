@@ -15,7 +15,7 @@
       # The prebuilt binaries are downloaded from the corresponding
       # nrfconnect/sdk-connectedhomeip release and pinned by content hash.
       # ------------------------------------------------------------------
-      ncsTag = "v3.3.0";
+      ncsTag = "v3.4.1";
       chipToolAssets = {
         aarch64-linux = {
           name = "chip-tool_arm64";

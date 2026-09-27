@@ -1,11 +1,11 @@
-# Workspace Setup (NCS v3.3.0)
+# Workspace Setup (NCS v3.4.1)
 
 This is a Zephyr workspace application. It lives inside the `BuranBrew` workspace
-alongside the `nrf/`, `zephyr/`, and `bootloader/` repositories at the `v3.3.0`
+alongside the `nrf/`, `zephyr/`, and `bootloader/` repositories at the `v3.4.1`
 workspace root.
 
 ```text
-~/ncs/v3.3.0/                   <- NCS Zephyr workspace root
+~/ncs/v3.4.1/                   <- NCS Zephyr workspace root
 ├─── .west/
 │    └─── config
 ├─── zephyr/
@@ -21,7 +21,7 @@ workspace root.
 ```
 The following steps are what worked at the time of writing this document. For
 the most updated info, refer to
-[nRF Connect Docs](https://nrfconnectdocs.nordicsemi.com/ncs/3.3.0/nrf/installation/install_ncs.html)
+[nRF Connect Docs](https://nrfconnectdocs.nordicsemi.com/ncs/3.4.1/nrf/installation/install_ncs.html)
 
 ## 1. Install nrfutil components
 
@@ -30,10 +30,10 @@ nrfutil install sdk-manager
 nrfutil install device
 ```
 
-## 2. Install NCS v3.3.0 toolchain
+## 2. Install NCS v3.4.1 toolchain
 
 ```bash
-nrfutil sdk-manager install v3.3.0
+nrfutil sdk-manager install v3.4.1
 ```
 
 ## 3. Enter the NCS toolchain shell
@@ -41,15 +41,15 @@ nrfutil sdk-manager install v3.3.0
 Use the shell entrypoint provided by sdk-manager for your installed toolchain.
 
 ```bash
-nrfutil sdk-manager toolchain launch --ncs-version v3.3.0 --shell
+nrfutil sdk-manager toolchain launch --ncs-version v3.4.1 --shell
 ```
 
 ## 4. Create NCS revision subdirectory
-Creates the `v3.3.0` subdirectory and checks out the given revision of the nRF
+Creates the `v3.4.1` subdirectory and checks out the given revision of the nRF
 Connect SDK inside it.
 
 ```bash
-west init -m https://github.com/nrfconnect/sdk-nrf --mr v3.3.0 v3.3.0
+west init -m https://github.com/nrfconnect/sdk-nrf --mr v3.4.1 v3.4.1
 ```
 
 Clone the project repositories
@@ -67,5 +67,5 @@ west zephyr-export
 ## 5.  Clone repo into the workspace
 
 ```bash
-git clone <repo-url> ~/ncs/v3.3.0/BuranBrew
+git clone <repo-url> ~/ncs/v3.4.1/BuranBrew
 ```

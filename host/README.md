@@ -17,7 +17,7 @@ again.
 
 | Setting | Value |
 |---|---|
-| NCS and `chip-tool` release | `v3.3.0` |
+| NCS and `chip-tool` release | `v3.4.1` |
 | `ot-br-posix` revision | `fbde28a` |
 | `amnin_sensors` tag | node `1` |
 | Heating plug | node `11` |
@@ -60,7 +60,7 @@ sudo systemctl restart avahi-daemon
 
 ### Flash and deploy from the workstation
 
-With the NCS v3.3.0 toolchain and J-Link available:
+With the NCS v3.4.1 toolchain and J-Link available:
 
 ```bash
 host/scripts/rcp-build-flash.sh

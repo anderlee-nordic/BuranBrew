@@ -39,35 +39,26 @@ void MatterBasicInformationClusterInitCallback(chip::EndpointId endpointId);
 
 void MatterBasicInformationClusterShutdownCallback(chip::EndpointId endpointId);
 
-void MatterLocalizationConfigurationClusterInitCallback(
-    chip::EndpointId endpointId);
+void MatterLocalizationConfigurationClusterInitCallback(chip::EndpointId endpointId);
 
-void MatterLocalizationConfigurationClusterShutdownCallback(
-    chip::EndpointId endpointId);
+void MatterLocalizationConfigurationClusterShutdownCallback(chip::EndpointId endpointId);
 
 void MatterGeneralCommissioningClusterInitCallback(chip::EndpointId endpointId);
 
-void MatterGeneralCommissioningClusterShutdownCallback(
-    chip::EndpointId endpointId);
+void MatterGeneralCommissioningClusterShutdownCallback(chip::EndpointId endpointId);
 
 void MatterGeneralDiagnosticsClusterInitCallback(chip::EndpointId endpointId);
 
-void MatterGeneralDiagnosticsClusterShutdownCallback(
-    chip::EndpointId endpointId);
+void MatterGeneralDiagnosticsClusterShutdownCallback(chip::EndpointId endpointId);
 
-void MatterAdministratorCommissioningClusterInitCallback(
-    chip::EndpointId endpointId);
+void MatterAdministratorCommissioningClusterInitCallback(chip::EndpointId endpointId);
 
-void MatterAdministratorCommissioningClusterShutdownCallback(
-    chip::EndpointId endpointId);
+void MatterAdministratorCommissioningClusterShutdownCallback(chip::EndpointId endpointId);
 
-void MatterOperationalCredentialsClusterInitCallback(
-    chip::EndpointId endpointId);
+void MatterOperationalCredentialsClusterInitCallback(chip::EndpointId endpointId);
 
-void MatterOperationalCredentialsClusterShutdownCallback(
-    chip::EndpointId endpointId);
+void MatterOperationalCredentialsClusterShutdownCallback(chip::EndpointId endpointId);
 
 void MatterGroupKeyManagementClusterInitCallback(chip::EndpointId endpointId);
 
-void MatterGroupKeyManagementClusterShutdownCallback(
-    chip::EndpointId endpointId);
+void MatterGroupKeyManagementClusterShutdownCallback(chip::EndpointId endpointId);

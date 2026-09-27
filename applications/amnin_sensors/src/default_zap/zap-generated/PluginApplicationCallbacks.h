@@ -34,18 +34,18 @@ void MatterGroupKeyManagementPluginServerInitCallback();
 void MatterTemperatureMeasurementPluginServerInitCallback();
 void MatterRelativeHumidityMeasurementPluginServerInitCallback();
 
-#define MATTER_PLUGINS_INIT                                                    \
-  MatterIdentifyPluginServerInitCallback();                                    \
-  MatterDescriptorPluginServerInitCallback();                                  \
-  MatterAccessControlPluginServerInitCallback();                               \
-  MatterBasicInformationPluginServerInitCallback();                            \
-  MatterOtaSoftwareUpdateRequestorPluginServerInitCallback();                  \
-  MatterLocalizationConfigurationPluginServerInitCallback();                   \
-  MatterGeneralCommissioningPluginServerInitCallback();                        \
-  MatterNetworkCommissioningPluginServerInitCallback();                        \
-  MatterGeneralDiagnosticsPluginServerInitCallback();                          \
-  MatterAdministratorCommissioningPluginServerInitCallback();                  \
-  MatterOperationalCredentialsPluginServerInitCallback();                      \
-  MatterGroupKeyManagementPluginServerInitCallback();                          \
-  MatterTemperatureMeasurementPluginServerInitCallback();                      \
-  MatterRelativeHumidityMeasurementPluginServerInitCallback();
+#define MATTER_PLUGINS_INIT                                                                        \
+	MatterIdentifyPluginServerInitCallback();                                                  \
+	MatterDescriptorPluginServerInitCallback();                                                \
+	MatterAccessControlPluginServerInitCallback();                                             \
+	MatterBasicInformationPluginServerInitCallback();                                          \
+	MatterOtaSoftwareUpdateRequestorPluginServerInitCallback();                                \
+	MatterLocalizationConfigurationPluginServerInitCallback();                                 \
+	MatterGeneralCommissioningPluginServerInitCallback();                                      \
+	MatterNetworkCommissioningPluginServerInitCallback();                                      \
+	MatterGeneralDiagnosticsPluginServerInitCallback();                                        \
+	MatterAdministratorCommissioningPluginServerInitCallback();                                \
+	MatterOperationalCredentialsPluginServerInitCallback();                                    \
+	MatterGroupKeyManagementPluginServerInitCallback();                                        \
+	MatterTemperatureMeasurementPluginServerInitCallback();                                    \
+	MatterRelativeHumidityMeasurementPluginServerInitCallback();
