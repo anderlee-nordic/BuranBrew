@@ -82,8 +82,8 @@
           # ------------------------------------------------------------------
           # BuranBrew control model
           #
-          # The fermentation control model and its default
-          # configuration, then exposes it through the buranbrew-model wrapper.
+          # The fermentation control model and its default configuration,
+          # then exposes it through the buranbrew-model wrapper.
           # CHIP Tool is added to PATH for Matter device communication.
           # ------------------------------------------------------------------
           buranbrew-model = pkgs.stdenvNoCC.mkDerivation {
@@ -96,6 +96,8 @@
             installPhase = ''
               runHook preInstall
               install -Dm755 run.py $out/share/buranbrew/run.py
+              install -Dm644 control.py $out/share/buranbrew/control.py
+              install -Dm644 utils.py $out/share/buranbrew/utils.py
               install -Dm644 config.yaml $out/share/buranbrew/config.yaml
               # Extra args (e.g. a config path) pass through to run.py;
               # with no args run.py falls back to the packaged config.yaml.
