@@ -13,8 +13,10 @@ processes:
     readiness_probe:
       exec:
         command: 'redis-cli -h 127.0.0.1 -p "$REDIS_PORT" ping | grep -q PONG'
-      initial_delay_seconds: 1
-      period_seconds: 2
+      initial_delay_seconds: 5
+      period_seconds: 5
+      timeout_seconds: 2
+      failure_threshold: 24
 
   pg-init:
     command: "bash $TELEMETRY_SRC/scripts/pg-init.sh"
