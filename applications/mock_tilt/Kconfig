@@ -1,0 +1,19 @@
+mainmenu "Mock Tilt sensor"
+
+menu "Application configuration"
+
+config INITIAL_TEMP_FAHRENHEIT
+	int "Initial temperature, in fahrenheit"
+	default 64
+
+config INITIAL_SG_MILLIS
+	int "Initial specific gravity (SG) x 1000"
+	default 1016
+
+module = APP
+module-str = Application
+source "subsys/logging/Kconfig.template.log_config"
+
+endmenu
+
+source "Kconfig.zephyr"
